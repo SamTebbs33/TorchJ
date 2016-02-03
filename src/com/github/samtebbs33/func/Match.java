@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 public class Match<E> {
 
     private Matcher<E>[] matchers;
+    public static final BiPredicate<Object, Object> CLASS = (x, y) -> x.getClass() == y;
 
     public Match(BiPredicate<E, E> predicate, Matcher<E>... matchers) {
         this.matchers = matchers;

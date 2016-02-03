@@ -12,14 +12,12 @@ public class SocketStream implements Closeable {
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private Socket socket;
-    public final long id;
-    public static final Random rand = new Random();
+    public long id;
 
     public SocketStream(Socket socket) throws IOException {
         this.socket = socket;
         this.out = new ObjectOutputStream(socket.getOutputStream());
         this.in = new ObjectInputStream(socket.getInputStream());
-        this.id = rand.nextLong();
     }
 
     public void write(Serializable obj) throws IOException {

@@ -2,6 +2,8 @@ package com.github.samtebbs33.net.event;
 
 import com.github.samtebbs33.net.SocketStream;
 
+import java.io.Serializable;
+
 /**
  * Created by samtebbs on 29/01/2016.
  */
@@ -25,9 +27,9 @@ public class SocketEvent {
 
     public static class SocketPacketEvent extends SocketEvent {
 
-        public Object packet;
+        public Serializable packet;
 
-        public SocketPacketEvent(SocketStream socket, Object packet) {
+        public SocketPacketEvent(SocketStream socket, Serializable packet) {
             super(socket);
             this.packet = packet;
         }

@@ -1,11 +1,11 @@
 package com.github.samtebbs33.net.event;
 
 import com.github.samtebbs33.event.EventManager;
+import com.github.samtebbs33.net.SocketStream;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.net.Socket;
+import java.io.Serializable;
 import java.net.SocketException;
 
 /**
@@ -13,10 +13,10 @@ import java.net.SocketException;
  */
 public class SocketEventManager extends EventManager<SocketEventListener> implements Runnable {
 
-    Socket socket;
+    SocketStream client;
 
-    public SocketEventManager(Socket socket) throws IOException {
-        this.socket = socket;
+    public SocketEventManager(SocketStream socket) throws IOException {
+        this.client = socket;
     }
 
     /**
@@ -37,14 +37,12 @@ public class SocketEventManager extends EventManager<SocketEventListener> implem
     @Override
     public void run() {
         try {
-            final ObjectInputStream reader = new ObjectInputStream(socket.getInputStream());
-            Object obj;
-            while ((obj = reader.readObject()) != null) {
-                final Object obj2 = obj;
-                notify(listener -> listener.onPacketReceived(new SocketEvent.SocketPacketEvent(socket, obj2)));
+            while (true) {
+                final Serializable obj = client.read();
+                notify(listener -> listener.onPacketReceived(new SocketEvent.SocketPacketEvent(client, obj)));
             }
         } catch (SocketException | EOFException e) {
-            notify(listener -> listener.onDisconnection(new SocketEvent.SocketExceptionEvent(socket, e)));
+            notify(listener -> listener.onDisconnection(new SocketEvent.SocketExceptionEvent(client, e)));
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }

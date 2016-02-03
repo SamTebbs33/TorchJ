@@ -16,25 +16,24 @@ import java.net.SocketException;
  */
 public abstract class Client implements SocketEventListener {
 
-    private final String ip;
-    private final int port;
-    private Socket socket;
-    private ObjectOutputStream outStream;
+    protected final String ip;
+    protected final int port;
+    private SocketStream stream;
 
     public Client(String ip, int port) throws IOException {
         this.ip = ip;
         this.port = port;
         try {
-            this.socket = new Socket(ip, port);
-            this.outStream = new ObjectOutputStream(this.socket.getOutputStream());
-            SocketEventManager eventManager = new SocketEventManager(socket);
+            Socket socket = new Socket(ip, port);
+            stream = new SocketStream(socket);
+            SocketEventManager eventManager = new SocketEventManager(stream);
             eventManager.addListener(this);
             eventManager.start();
             onConnected();
         } catch (ConnectException e) {
-            onConnectionRefused(new SocketEvent(socket));
+            onConnectionRefused(new SocketEvent(stream));
         } catch (SocketException e) {
-            onDisconnection(new SocketEvent.SocketExceptionEvent(socket, e));
+            onDisconnection(new SocketEvent.SocketExceptionEvent(stream, e));
         }
     }
 
@@ -46,9 +45,9 @@ public abstract class Client implements SocketEventListener {
      */
     public void send(Serializable packet) throws IOException {
         try {
-            outStream.writeObject(packet);
+            stream.write(packet);
         } catch (SocketException e) {
-            onDisconnection(new SocketEvent.SocketExceptionEvent(socket, e));
+            onDisconnection(new SocketEvent.SocketExceptionEvent(stream, e));
         }
     }
 

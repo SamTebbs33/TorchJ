@@ -1,17 +1,17 @@
 package com.github.samtebbs33.net;
 
+import com.github.samtebbs33.MessagePacket;
+import com.github.samtebbs33.ServerMessagePacket;
 import com.github.samtebbs33.event.Startable;
 import com.github.samtebbs33.net.event.SocketEventListener;
 import com.github.samtebbs33.net.event.SocketEventManager;
-import com.github.samtebbs33.net.packet.ClientConnectionPacket;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Random;
+import java.util.Set;
 
 /**
  * Created by samtebbs on 30/01/2016.
@@ -21,20 +21,20 @@ public abstract class Server implements SocketEventListener, Startable, Closeabl
     private int port;
     protected ServerSocket socket;
     private Thread clientConnectionThread;
-    private Random rand = new Random();
 
     public Server(int port, int maxClients) throws IOException {
         this.port = port;
         this.socket = new ServerSocket(port);
         clientConnectionThread = new Thread(() -> {
             while (true) {
-                Socket socket = null;
+                SocketStream client = null;
                 try {
-                    socket = this.socket.accept();
+                    Socket socket = this.socket.accept();
+                    client = new SocketStream(socket);
                     if (getNumClients() < maxClients) {
-                        onClientConnected(socket);
+                        onClientConnected(client);
                     } else {
-                        onClientRefused(socket);
+                        onClientRefused(client);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -57,9 +57,8 @@ public abstract class Server implements SocketEventListener, Startable, Closeabl
      * @param client
      * @throws IOException
      */
-    public void send(Serializable packet, Socket client) throws IOException {
-        ObjectOutputStream outStream = new ObjectOutputStream(client.getOutputStream());
-        outStream.writeObject(packet);
+    public void send(Serializable packet, SocketStream client) throws IOException {
+        client.write(packet);
     }
 
     /**
@@ -67,7 +66,27 @@ public abstract class Server implements SocketEventListener, Startable, Closeabl
      *
      * @param packet
      */
-    public abstract void broadcast(Serializable packet);
+    public void broadcast(Serializable packet) {
+        getClients().forEach(client -> {
+            try {
+                send(packet, client);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void broadcastExcluding(Serializable packet, SocketStream client) {
+        getClients().forEach(socket -> {
+            if (!socket.equals(client)) try {
+                send(packet, socket);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public abstract Set<SocketStream> getClients();
 
     /**
      * Stop the slient acceptance thread
@@ -89,11 +108,10 @@ public abstract class Server implements SocketEventListener, Startable, Closeabl
      * @param clientSocket
      * @throws IOException
      */
-    protected void onClientConnected(Socket clientSocket) throws IOException {
-        SocketEventManager manager = new SocketEventManager(clientSocket);
+    protected void onClientConnected(SocketStream client) throws IOException {
+        SocketEventManager manager = new SocketEventManager(client);
         manager.addListener(this);
         manager.start();
-        send(new ClientConnectionPacket(rand.nextLong()), clientSocket);
     }
 
     /**
@@ -101,10 +119,10 @@ public abstract class Server implements SocketEventListener, Startable, Closeabl
      *
      * @param clientSocket
      */
-    protected void onClientRefused(Socket clientSocket) {
+    protected void onClientRefused(SocketStream client) {
         try {
-            send("Number of allowed clients has been reached", clientSocket);
-            clientSocket.close();
+            send(new ServerMessagePacket("### Number of allowed clients has been reached"), client);
+            client.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -128,7 +146,7 @@ public abstract class Server implements SocketEventListener, Startable, Closeabl
      */
     @Override
     public void start() {
-        clientConnectionThread.start();
+        if (!clientConnectionThread.isAlive()) clientConnectionThread.start();
     }
 
 }

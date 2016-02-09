@@ -1,7 +1,5 @@
 package com.github.samtebbs33.net;
 
-import com.github.samtebbs33.MessagePacket;
-import com.github.samtebbs33.ServerMessagePacket;
 import com.github.samtebbs33.event.Startable;
 import com.github.samtebbs33.net.event.SocketEventListener;
 import com.github.samtebbs33.net.event.SocketEventManager;
@@ -54,11 +52,11 @@ public abstract class Server implements SocketEventListener, Startable, Closeabl
      * Send a packet to a client socket
      *
      * @param packet
-     * @param client
+     * @param clients
      * @throws IOException
      */
-    public void send(Serializable packet, SocketStream client) throws IOException {
-        client.write(packet);
+    public void send(Serializable packet, SocketStream... clients) throws IOException {
+        for(SocketStream client : clients) client.write(packet);
     }
 
     /**
@@ -105,7 +103,7 @@ public abstract class Server implements SocketEventListener, Startable, Closeabl
     /**
      * Called when a client connects to the server
      *
-     * @param clientSocket
+     * @param client
      * @throws IOException
      */
     protected void onClientConnected(SocketStream client) throws IOException {
@@ -117,11 +115,10 @@ public abstract class Server implements SocketEventListener, Startable, Closeabl
     /**
      * Called when a client connection is refused
      *
-     * @param clientSocket
+     * @param client
      */
     protected void onClientRefused(SocketStream client) {
         try {
-            send(new ServerMessagePacket("### Number of allowed clients has been reached"), client);
             client.close();
         } catch (IOException e) {
             e.printStackTrace();

@@ -1,7 +1,5 @@
 package com.github.samtebbs33.net;
 
-import com.github.samtebbs33.MessagePacket;
-import com.github.samtebbs33.ServerMessagePacket;
 import com.github.samtebbs33.event.Startable;
 import com.github.samtebbs33.net.event.SocketEventListener;
 import com.github.samtebbs33.net.event.SocketEventManager;

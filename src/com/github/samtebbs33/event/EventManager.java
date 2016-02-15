@@ -17,9 +17,9 @@ public abstract class EventManager<E> implements Startable {
      * Notify all listeners about the event
      *
      * @param consumer - The consumer's accept method is called with each listener
-     * @example notify(listener -> listener.onSomeEvent())
+     * @example forEach(listener -> listener.onSomeEvent())
      */
-    public final void notify(Consumer<E> consumer) {
+    public final void forEach(Consumer<E> consumer) {
         listeners.forEach((l) -> consumer.accept(l));
     }
 

@@ -1,7 +1,5 @@
 package com.github.samtebbs33.net;
 
-import com.github.samtebbs33.MessagePacket;
-import com.github.samtebbs33.ServerMessagePacket;
 import com.github.samtebbs33.event.Startable;
 import com.github.samtebbs33.net.event.SocketEventListener;
 import com.github.samtebbs33.net.event.SocketEventManager;
@@ -18,18 +16,20 @@ import java.util.Set;
  */
 public abstract class Server implements SocketEventListener, Startable, Closeable {
 
-    private int port;
     protected ServerSocket socket;
+    private int port;
     private Thread clientConnectionThread;
 
-    public Server(int port, int maxClients) throws IOException {
+    public Server(int port, int maxClients, int timeout) throws IOException {
         this.port = port;
         this.socket = new ServerSocket(port);
+        this.socket.setSoTimeout(timeout);
         clientConnectionThread = new Thread(() -> {
             while (true) {
                 SocketStream client = null;
                 try {
                     Socket socket = this.socket.accept();
+                    socket.setSoTimeout(timeout);
                     client = new SocketStream(socket);
                     if (getNumClients() < maxClients) {
                         onClientConnected(client);
@@ -57,8 +57,12 @@ public abstract class Server implements SocketEventListener, Startable, Closeabl
      * @param client
      * @throws IOException
      */
-    public void send(Serializable packet, SocketStream client) throws IOException {
-        client.write(packet);
+    public void send(Serializable packet, SocketStream... clients) throws IOException {
+        for (SocketStream client : clients) client.write(packet);
+    }
+
+    public void send(Serializable packet, Iterable<SocketStream> clients) throws IOException {
+        for (SocketStream client : clients) client.write(packet);
     }
 
     /**
@@ -121,7 +125,6 @@ public abstract class Server implements SocketEventListener, Startable, Closeabl
      */
     protected void onClientRefused(SocketStream client) {
         try {
-            send(new ServerMessagePacket("### Number of allowed clients has been reached"), client);
             client.close();
         } catch (IOException e) {
             e.printStackTrace();

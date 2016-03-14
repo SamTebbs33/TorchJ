@@ -19,9 +19,13 @@ public class Loop {
     public static void whileLoop(Supplier<Boolean> condition, Runnable runnable) {
         while (condition.get()) runnable.run();
     }
-
+    
     public static void whileLoop(Supplier<Boolean> condition, Consumer<Integer> consumer) {
-        int i = 0;
+        whileLoop(condition, consumer, 0);
+    }
+
+    private static void whileLoop(Supplier<Boolean> condition, Consumer<Integer> consumer, int startVal) {
+        int i = startVal;
         while (condition.get()) consumer.accept(i++);
     }
 
@@ -31,9 +35,8 @@ public class Loop {
     }
 
     public static void doWhile(Supplier<Boolean> condition, Consumer<Integer> consumer) {
-        int i = 1;
         consumer.accept(i);
-        while (condition.get()) consumer.accept(i++);
+        whileLoop(condition, consumer, 1);
     }
 
 }

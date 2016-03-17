@@ -6,13 +6,13 @@ import java.util.function.Predicate;
 /**
  * Created by samtebbs on 11/03/2016.
  */
-public class Range implements Iterable<Integer>, Iterator<Integer> {
+public class Range<T> implements Iterable<T>, Iterator<T> {
 
-    private final int start, step;
-    private final Predicate<Integer> end;
-    private int current;
+    private T start, current;
+    private final Predicate<T> end;
+    private final Function<T, T> step;
 
-    public Range(int start, Predicate<Integer> end, int step) {
+    public Range(T start, Predicate<T> end, Function<T, T> step) {
         this.start = start;
         this.end = end;
         this.step = step;
@@ -25,7 +25,7 @@ public class Range implements Iterable<Integer>, Iterator<Integer> {
      * @return an Iterator.
      */
     @Override
-    public Iterator<Integer> iterator() {
+    public Iterator<T> iterator() {
         return this;
     }
 
@@ -47,9 +47,9 @@ public class Range implements Iterable<Integer>, Iterator<Integer> {
      * @return the next element in the iteration
      */
     @Override
-    public Integer next() {
-        int temp = current;
-        current += step;
+    public T next() {
+        T temp = current;
+        current = step.apply(current);
         return temp;
     }
 }

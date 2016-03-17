@@ -18,7 +18,7 @@ public class Matcher<E> {
         this.objs = objs;
     }
 
-    public void setPredicate(BiPredicate<E, E> predicate) {
+    void setPredicate(BiPredicate<E, E> predicate) {
         this.predicate = predicate;
     }
 

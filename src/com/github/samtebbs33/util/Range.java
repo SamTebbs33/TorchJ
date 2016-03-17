@@ -1,7 +1,7 @@
 package com.github.samtebbs33.util;
 
 import java.util.Iterator;
-import java.util.function.Predicate;
+import java.util.function.*;
 
 /**
  * Created by samtebbs on 11/03/2016.

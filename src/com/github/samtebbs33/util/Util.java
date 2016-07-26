@@ -1,3 +1,7 @@
+package com.github.samtebbs33.util;
+
+import java.util.function.BiFunction;
+
 public class Util {
 
     /**

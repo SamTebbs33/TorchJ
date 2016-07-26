@@ -13,4 +13,12 @@ public class Util {
     	return objs;
     }
 
+    public static <T, E> boolean equals(T[] obj1, E[] obj2, BiFunction<T, E, Boolean> equalityFunc) {
+        if(obj1.length != obj2.length) return false;
+        for(int i = 0; i < obj1.length; i++) {
+            if(!equalityFunc.apply(obj1[i], obj2[i])) return false;
+        }
+        return true;
+    }
+
 }

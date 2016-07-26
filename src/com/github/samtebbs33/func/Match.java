@@ -1,42 +1,46 @@
 package com.github.samtebbs33.func;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Objects;
 import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 
 /**
  * Created by samtebbs on 01/02/2016.
  */
-public class Match<E> {
+public class Match<E, M> {
 
-    private Matcher<E>[] matchers;
-    public static final BiPredicate<Object, Object> CLASS = (x, y) -> x.getClass() == y;
+    public final Matcher<M>[] matchers;
+    public final BiPredicate<E, M> predicate;
 
-    public Match(BiPredicate<E, E> predicate, Matcher<E>... matchers) {
+    public static final BiPredicate<Object, Class> CLASS = (obj, cls) -> obj.getClass() == cls,
+            INSTANCE_OF = (obj, cls) -> cls.isInstance(obj);
+    public static final BiPredicate<Object, Object> EQUALS = Objects::equals;
+
+
+    public Match( BiPredicate<E, M> predicate, Matcher<M>... matchers) {
         this.matchers = matchers;
-        for (Matcher<E> matcher : matchers) matcher.setPredicate(predicate);
+        this.predicate = predicate;
     }
 
     public boolean match(E obj) {
-        for (Matcher<E> matcher : matchers)
-            if (matcher.matches(obj)) {
-                matcher.run();
-                return true;
-            }
+        for(Matcher m : matchers) if(m.matches(obj, predicate)) {
+            m.run();
+            return true;
+        }
         return false;
     }
 
-    public boolean multimatch(E obj) {
-        boolean matched = false;
-        for (Matcher<E> matcher : matchers)
-            if (matcher.matches(obj)) {
-                matched = true;
-                matcher.run();
-            }
-        return matched;
+    public void match(E obj, Runnable def) {
+        if(!match(obj)) def.run();
     }
 
-    public void match(E obj, Runnable def) {
-        if (!match(obj)) def.run();
+    public static void main(String[] args) {
+        Match<Object, Object> match = new Match<>(EQUALS,
+                new Matcher<>(() -> System.out.println("is hello"), "hello"),
+                new Matcher<>(() -> System.out.println("is hi"), "hi")
+        );
+        match.match("greetings", () -> System.out.println("None of them"));
     }
 
 }

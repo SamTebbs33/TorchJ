@@ -7,23 +7,18 @@ import java.util.function.Predicate;
 /**
  * Created by samtebbs on 01/02/2016.
  */
-public class Matcher<E> {
+public class Matcher<M> {
 
-    private E[] objs;
-    private BiPredicate<E, E> predicate;
+    private M[] objs;
     private Runnable consumer;
 
-    public Matcher(Runnable consumer, E... objs) {
+    public Matcher(Runnable consumer, M... objs) {
         this.consumer = consumer;
         this.objs = objs;
     }
 
-    void setPredicate(BiPredicate<E, E> predicate) {
-        this.predicate = predicate;
-    }
-
-    public boolean matches(E obj) {
-        for (E e : objs) if (predicate.test(e, obj)) return true;
+    public <E> boolean matches(E obj, BiPredicate<E, M> predicate) {
+        for (M e : objs) if (predicate.test(obj, e)) return true;
         return false;
     }
 

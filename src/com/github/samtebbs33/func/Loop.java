@@ -35,7 +35,7 @@ public class Loop {
     }
 
     public static void doWhile(Supplier<Boolean> condition, Consumer<Integer> consumer) {
-        consumer.accept(i);
+        consumer.accept(0);
         whileLoop(condition, consumer, 1);
     }
 
